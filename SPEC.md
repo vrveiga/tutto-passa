@@ -186,11 +186,11 @@ Every cell is **2 columns wide**: the glyph followed by a gap space. The today m
 read — Read 20 pages                         (name line; id — name, if they differ)
       Jun     Jul      Aug     Sep      Oct
 Mon   ■ ■ ■ □ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
-      ■ ■ · ■ ■ ■ ■ ■ □ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+Tue   ■ ■ · ■ ■ ■ ■ ■ □ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
 Wed   ■ ■ ■ ■ ■ □ ■ ■ ■ ■ ■ ■ · ■ ■ ■ ■ ■ ■ ■
-      ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+Thu   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
 Fri   ■ □ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
-      ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
+Sat   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
 Sun   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■
 
       less □ ■ ■ ■ ■ more   · skip
@@ -198,7 +198,7 @@ Sun   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ �
 ```
 
 Layout rules:
-- **Rows are weekdays, Monday to Sunday.** Weeks start on Monday (ISO). Only the Mon/Wed/Fri labels are printed; the label column is 4 characters wide plus 1 gap (`"Mon "` + gap).
+- **Rows are weekdays, Monday to Sunday.** Weeks start on Monday (ISO). Every row is labeled (Mon–Sun); the label column is 4 characters wide plus 1 gap (`"Mon "` + gap).
 - **Columns are weeks.** The last column is the week containing today. Days after today in that week are blank.
 - **Number of weeks**: `--weeks N` if given; otherwise `clamp((term_width − 6) / 2, 4, 53)`. Terminal width comes from `terminal_size`, falling back to 80 when it isn't a TTY.
 - If the terminal is too narrow for 4 weeks, render 4 weeks anyway and let the terminal wrap. There is no vertical layout.

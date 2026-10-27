@@ -70,7 +70,7 @@ pub fn render(
     out.push('\n');
 
     for row in 0..7 {
-        let mut line = format!("{:<4}", ["Mon", "", "Wed", "", "Fri", "", ""][row]);
+        let mut line = format!("{:<4}", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][row]);
         for col in 0..weeks {
             let date = start.saturating_add((7 * col as i64 + row as i64).days());
             let entry = entries.get(&date);
@@ -206,12 +206,12 @@ mod tests {
 water
            Nov
 Mon      □ □
-       ▓ ░ █
+Tue    ▓ ░ █
 Wed    · □>□
-       □ □
+Thu    □ □
 Fri    □ □
-       □ □
-       □ □
+Sat    □ □
+Sun    □ □
 
      less □ ░ ▒ ▓ █ more   · skip   target 8 glasses
      streak 1 · longest 1
