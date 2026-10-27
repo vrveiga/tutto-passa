@@ -17,6 +17,15 @@ pub fn weeks_for_width(width: u16) -> usize {
     ((i32::from(width) - 6) / 2).clamp(4, 53) as usize
 }
 
+/// Weeks from the one holding the 1st of the start month through today's
+/// week, capped by what fits the terminal.
+pub fn default_weeks(start: Date, today: Date, width: u16) -> usize {
+    let from = first_monday(start.first_of_month(), 1);
+    let to = first_monday(today, 1);
+    let span = ((to - from).get_days() / 7 + 1).max(1) as usize;
+    span.min(weeks_for_width(width))
+}
+
 /// Monday of the first displayed week; the last column holds `today`.
 pub fn first_monday(today: Date, weeks: usize) -> Date {
     let offset = i64::from(today.weekday().to_monday_zero_offset()) + 7 * (weeks as i64 - 1);
@@ -70,7 +79,10 @@ pub fn render(
     out.push('\n');
 
     for row in 0..7 {
-        let mut line = format!("{:<4}", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][row]);
+        let mut line = format!(
+            "{:<4}",
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][row]
+        );
         for col in 0..weeks {
             let date = start.saturating_add((7 * col as i64 + row as i64).days());
             let entry = entries.get(&date);
@@ -140,6 +152,38 @@ mod tests {
         ] {
             assert_eq!(weeks_for_width(w), want, "{w}");
         }
+    }
+
+    #[test]
+    fn weeks_from_start_month() {
+        for (start, today, width, want) in [
+            (date(2026, 10, 27), date(2026, 10, 27), 200, 5),
+            (date(2026, 10, 1), date(2026, 10, 1), 200, 1),
+            (date(2026, 10, 5), date(2026, 10, 27), 200, 5),
+            (date(2025, 1, 10), date(2026, 10, 27), 80, 37),
+            (date(2026, 10, 27), date(2026, 10, 27), 10, 4),
+            (date(2026, 10, 27), date(2026, 10, 27), 14, 4),
+            (date(2026, 10, 20), date(2026, 10, 21), 10, 4),
+        ] {
+            assert_eq!(
+                default_weeks(start, today, width),
+                want,
+                "{start} {today} {width}"
+            );
+        }
+        assert_eq!(default_weeks(date(2026, 10, 1), date(2026, 10, 1), 10), 1);
+    }
+
+    #[test]
+    fn starts_at_start_month() {
+        let today = date(2026, 10, 27);
+        let h = bool_habit("read", today);
+        let weeks = default_weeks(h.start, today, 200);
+        assert_eq!(first_monday(today, weeks), date(2026, 9, 28));
+        let got = render(&h, &Entries::new(), today, weeks, ColorMode::None);
+        let lines: Vec<&str> = got.lines().collect();
+        assert_eq!(lines[1], "     Oct     Nov");
+        assert_eq!(lines[3], "Tue         >□");
     }
 
     #[test]

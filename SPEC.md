@@ -200,7 +200,7 @@ Sun   ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ �
 Layout rules:
 - **Rows are weekdays, Monday to Sunday.** Weeks start on Monday (ISO). Every row is labeled (Mon–Sun); the label column is 4 characters wide plus 1 gap (`"Mon "` + gap).
 - **Columns are weeks.** The last column is the week containing today. Days after today in that week are blank.
-- **Number of weeks**: `--weeks N` if given; otherwise `clamp((term_width − 6) / 2, 4, 53)`. Terminal width comes from `terminal_size`, falling back to 80 when it isn't a TTY.
+- **Number of weeks**: `--weeks N` if given; otherwise the weeks from the one containing the 1st of the habit's start month through today's week, capped at `clamp((term_width − 6) / 2, 4, 53)`. Days between the 1st and the start date render blank. Terminal width comes from `terminal_size`, falling back to 80 when it isn't a TTY.
 - If the terminal is too narrow for 4 weeks, render 4 weeks anyway and let the terminal wrap. There is no vertical layout.
 - **Month labels**: a month's 3-letter label is placed above the first column whose week contains the 1st of that month. A label is dropped if it would overlap the previous label's text (needs ≥ 1 space between labels).
 - The legend shows the habit's ramp (L0–L4). Count habits add the unit and current target: `target 8 glasses`.

@@ -64,7 +64,10 @@ fn run(cli: Cli) -> Result<()> {
         } => {
             let h = &data.habits[resolve(&data, &arg)?];
             let entries = data.entries_of(&h.id);
-            let weeks = weeks.map_or_else(|| render::heatmap::weeks_for_width(width), usize::from);
+            let weeks = weeks.map_or_else(
+                || render::heatmap::default_weeks(h.start, today, width),
+                usize::from,
+            );
             if json {
                 let first = render::heatmap::first_monday(today, weeks);
                 print_json(&render::json::show(h, entries, today, first));
