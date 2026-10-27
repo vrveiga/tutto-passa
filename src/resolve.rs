@@ -52,9 +52,10 @@ mod tests {
     use jiff::civil::date;
 
     fn data(ids: &[&str]) -> Data {
-        let mut d = Data::default();
-        d.habits = ids.iter().map(|id| bool_habit(id, date(2026, 1, 1))).collect();
-        d
+        Data {
+            habits: ids.iter().map(|id| bool_habit(id, date(2026, 1, 1))).collect(),
+            ..Data::default()
+        }
     }
 
     #[test]
