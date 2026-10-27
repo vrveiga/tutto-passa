@@ -99,6 +99,8 @@ pub enum Command {
         #[arg(long)]
         force: bool,
     },
+    /// Update tp to the latest release
+    Update,
 }
 
 #[derive(clap::Args, Debug)]

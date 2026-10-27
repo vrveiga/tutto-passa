@@ -150,3 +150,15 @@ fn corrupt_file_is_never_overwritten() {
     assert!(String::from_utf8_lossy(&out.stderr).contains("line 1"));
     assert_eq!(std::fs::read_to_string(&path).unwrap(), "{ not json");
 }
+
+#[test]
+fn update_without_receipt_explains_itself() {
+    let env = Env::new();
+    let out = Command::new(env!("CARGO_BIN_EXE_tp"))
+        .arg("update")
+        .env("AXOUPDATER_CONFIG_PATH", &env.dir)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("cargo install --git"));
+}

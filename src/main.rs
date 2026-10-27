@@ -32,6 +32,10 @@ fn main() -> ExitCode {
 }
 
 fn run(cli: Cli) -> Result<()> {
+    // Before loading anything, so a broken data file can't block an update.
+    if let Some(Command::Update) = cli.command {
+        return update();
+    }
     let config = match config::path() {
         Some(p) => config::load(&p)?,
         None => config::Config::default(),
@@ -152,9 +156,26 @@ fn run(cli: Cli) -> Result<()> {
             }
             ops::delete(&mut data, idx)
         }
+        Command::Update => unreachable!("handled above"),
     };
     store::save(&path, &data)?;
     print_report(&report);
+    Ok(())
+}
+
+/// Self-update via the receipt the curl/PowerShell installer leaves behind.
+fn update() -> Result<()> {
+    let mut updater = axoupdater::AxoUpdater::new_for("tutto-passa");
+    if updater.load_receipt().is_err() {
+        bail!(
+            "tp wasn't installed with the installer; reinstall it or run \
+             `cargo install --git https://github.com/vrveiga/tutto-passa`"
+        );
+    }
+    match updater.run_sync()? {
+        Some(r) => println!("updated to {}", r.new_version),
+        None => println!("already up to date ({})", env!("CARGO_PKG_VERSION")),
+    }
     Ok(())
 }
 

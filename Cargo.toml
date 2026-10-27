@@ -2,9 +2,13 @@
 name = "tutto-passa"
 version = "0.1.0"
 edition = "2024"
+description = "A tiny habit tracker for your terminal"
+repository = "https://github.com/vrveiga/tutto-passa"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.104"
+axoupdater = { version = "0.10.3", default-features = false, features = ["blocking", "github_releases"] }
 clap = { version = "4.6.7", features = ["derive"] }
 dirs = "7.0.0"
 jiff = { version = "0.2.38", features = ["serde"] }
@@ -16,3 +20,8 @@ toml = "1.1.8"
 [[bin]]
 name = "tp"
 path = "src/main.rs"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
