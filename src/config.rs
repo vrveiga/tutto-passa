@@ -11,7 +11,10 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config { day_starts_at: 0, backfill_warn_days: 7 }
+        Config {
+            day_starts_at: 0,
+            backfill_warn_days: 7,
+        }
     }
 }
 
@@ -46,8 +49,8 @@ pub fn parse(text: &str) -> Result<Config> {
         cfg.day_starts_at = v as u8;
     }
     if let Some(v) = raw.backfill_warn_days {
-        cfg.backfill_warn_days =
-            u32::try_from(v).map_err(|_| anyhow::anyhow!("backfill_warn_days must be ≥ 0 (got {v})"))?;
+        cfg.backfill_warn_days = u32::try_from(v)
+            .map_err(|_| anyhow::anyhow!("backfill_warn_days must be ≥ 0 (got {v})"))?;
     }
     Ok(cfg)
 }
@@ -61,7 +64,10 @@ mod tests {
         assert_eq!(parse("").unwrap(), Config::default());
         assert_eq!(
             parse("day_starts_at = 4\nbackfill_warn_days = 3").unwrap(),
-            Config { day_starts_at: 4, backfill_warn_days: 3 }
+            Config {
+                day_starts_at: 4,
+                backfill_warn_days: 3
+            }
         );
     }
 

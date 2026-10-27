@@ -51,7 +51,9 @@ pub fn ramp(hue: Hue) -> [Rgb; 4] {
 pub fn xterm256(Rgb(r, g, b): Rgb) -> u8 {
     const LEVELS: [i32; 6] = [0, 95, 135, 175, 215, 255];
     let near = |v: u8| {
-        (0..6).min_by_key(|&i| (LEVELS[i] - i32::from(v)).abs()).unwrap()
+        (0..6)
+            .min_by_key(|&i| (LEVELS[i] - i32::from(v)).abs())
+            .unwrap()
     };
     let (ri, gi, bi) = (near(r), near(g), near(b));
     let dist = |(x, y, z): (i32, i32, i32)| {
@@ -78,10 +80,16 @@ pub struct Style {
 
 impl Style {
     pub fn fg(rgb: Rgb) -> Self {
-        Style { fg: Some(rgb), ..Default::default() }
+        Style {
+            fg: Some(rgb),
+            ..Default::default()
+        }
     }
     pub fn dim() -> Self {
-        Style { dim: true, ..Default::default() }
+        Style {
+            dim: true,
+            ..Default::default()
+        }
     }
 }
 
@@ -141,8 +149,18 @@ mod tests {
     #[test]
     fn painting() {
         assert_eq!(paint(ColorMode::None, "x", Style::fg(Rgb(1, 2, 3))), "x");
-        assert_eq!(paint(ColorMode::TrueColor, "x", Style::fg(Rgb(1, 2, 3))), "\x1b[38;2;1;2;3mx\x1b[0m");
-        let s = Style { bold: true, underline: true, ..Style::fg(Rgb(255, 0, 0)) };
-        assert_eq!(paint(ColorMode::Ansi256, "x", s), "\x1b[1;4;38;5;196mx\x1b[0m");
+        assert_eq!(
+            paint(ColorMode::TrueColor, "x", Style::fg(Rgb(1, 2, 3))),
+            "\x1b[38;2;1;2;3mx\x1b[0m"
+        );
+        let s = Style {
+            bold: true,
+            underline: true,
+            ..Style::fg(Rgb(255, 0, 0))
+        };
+        assert_eq!(
+            paint(ColorMode::Ansi256, "x", s),
+            "\x1b[1;4;38;5;196mx\x1b[0m"
+        );
     }
 }

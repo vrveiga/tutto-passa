@@ -35,8 +35,16 @@ impl Cell {
         let (glyph, mut style) = match (self, mode) {
             (Cell::Blank, _) => return " ".into(),
             (Cell::Missed, _) => ("□", Style::fg(MISSED)),
-            (Cell::Skip, _) => ("·", Style { dim: true, ..Style::fg(SKIP) }),
-            (Cell::Level(l), ColorMode::None) => (["░", "▒", "▓", "█"][usize::from(l - 1)], Style::default()),
+            (Cell::Skip, _) => (
+                "·",
+                Style {
+                    dim: true,
+                    ..Style::fg(SKIP)
+                },
+            ),
+            (Cell::Level(l), ColorMode::None) => {
+                (["░", "▒", "▓", "█"][usize::from(l - 1)], Style::default())
+            }
             (Cell::Level(l), _) => ("■", Style::fg(ramp(hue)[usize::from(l - 1)])),
         };
         if today {

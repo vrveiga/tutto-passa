@@ -90,15 +90,33 @@ mod tests {
         let mut h = count_habit("water", date(2026, 10, 25), 8);
         h.unit = Some("glasses".into());
         let mut e = Entries::new();
-        e.insert(date(2026, 10, 26), Entry::Value { value: 8, target: 8 });
-        e.insert(today, Entry::Value { value: 4, target: 8 });
+        e.insert(
+            date(2026, 10, 26),
+            Entry::Value {
+                value: 8,
+                target: 8,
+            },
+        );
+        e.insert(
+            today,
+            Entry::Value {
+                value: 4,
+                target: 8,
+            },
+        );
         let v = show(&h, &e, today, date(2026, 10, 19));
-        assert_eq!(v["today"], json!({"state": "pending", "value": 4, "target": 8}));
+        assert_eq!(
+            v["today"],
+            json!({"state": "pending", "value": 4, "target": 8})
+        );
         assert_eq!(v["streak"], json!({"current": 1, "longest": 1}));
         assert_eq!(v["unit"], "glasses");
         let days = v["days"].as_array().unwrap();
         assert_eq!(days.len(), 3);
-        assert_eq!(days[0], json!({"date": "2026-10-25", "state": "missed", "value": 0, "target": 8, "level": 0}));
+        assert_eq!(
+            days[0],
+            json!({"date": "2026-10-25", "state": "missed", "value": 0, "target": 8, "level": 0})
+        );
         assert_eq!(days[1]["level"], 3);
     }
 }

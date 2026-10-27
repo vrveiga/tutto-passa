@@ -18,7 +18,10 @@ pub struct Report {
 
 impl Report {
     fn new(message: impl Into<String>) -> Self {
-        Report { message: message.into(), ..Default::default() }
+        Report {
+            message: message.into(),
+            ..Default::default()
+        }
     }
 }
 
@@ -67,31 +70,56 @@ pub fn add(data: &mut Data, new: NewHabit, today: Date) -> Result<Report> {
     data.habits.push(Habit {
         name: new.name.unwrap_or_else(|| new.id.clone()),
         id: new.id,
-        kind: if new.target.is_some() { Kind::Count } else { Kind::Bool },
+        kind: if new.target.is_some() {
+            Kind::Count
+        } else {
+            Kind::Bool
+        },
         unit: new.unit,
         color: new.color,
         start,
-        targets: new.target.map(|value| TargetChange { from: start, value }).into_iter().collect(),
+        targets: new
+            .target
+            .map(|value| TargetChange { from: start, value })
+            .into_iter()
+            .collect(),
         pauses: vec![],
     });
     Ok(Report::new(message))
 }
 
 /// Shared checks for any write to `date`: future, archived, paused, backfill warning.
-fn check_date(habit: &Habit, date: Date, today: Date, cfg: &Config, report: &mut Report) -> Result<()> {
+fn check_date(
+    habit: &Habit,
+    date: Date,
+    today: Date,
+    cfg: &Config,
+    report: &mut Report,
+) -> Result<()> {
     if date > today {
         bail!("{date} is in the future");
     }
     if let Some(p) = habit.open_pause() {
-        bail!("{} is archived since {}; run 'tp unarchive {}'", habit.id, p.from, habit.id);
+        bail!(
+            "{} is archived since {}; run 'tp unarchive {}'",
+            habit.id,
+            p.from,
+            habit.id
+        );
     }
     if let Some(p) = habit.pause_containing(date) {
         let to = p.to.map_or_else(String::new, |d| d.to_string());
-        bail!("{date} is inside a pause of {} ({}..{to})", habit.id, p.from);
+        bail!(
+            "{date} is inside a pause of {} ({}..{to})",
+            habit.id,
+            p.from
+        );
     }
     let ago = i64::from((today - date).get_days());
     if ago > i64::from(cfg.backfill_warn_days) {
-        report.warnings.push(format!("editing {date} ({ago} days ago)"));
+        report
+            .warnings
+            .push(format!("editing {date} ({ago} days ago)"));
     }
     Ok(())
 }
@@ -100,7 +128,9 @@ fn check_date(habit: &Habit, date: Date, today: Date, cfg: &Config, report: &mut
 fn extend_start(habit: &mut Habit, date: Date, report: &mut Report) {
     if date < habit.start {
         habit.start = date;
-        report.notes.push(format!("{} start moved to {date}", habit.id));
+        report
+            .notes
+            .push(format!("{} start moved to {date}", habit.id));
     }
 }
 
@@ -183,7 +213,10 @@ pub fn skip(data: &mut Data, idx: usize, date: Date, today: Date, cfg: &Config) 
     check_date(&data.habits[idx], date, today, cfg, &mut report)?;
     let id = data.habits[idx].id.clone();
     extend_start(&mut data.habits[idx], date, &mut report);
-    data.entries.entry(id.clone()).or_default().insert(date, Entry::Skip);
+    data.entries
+        .entry(id.clone())
+        .or_default()
+        .insert(date, Entry::Skip);
     report.message = format!("· {id} skipped — {date}");
     Ok(report)
 }
@@ -218,9 +251,15 @@ pub fn target(data: &mut Data, idx: usize, value: u32, today: Date) -> Result<Re
     }
     habit.targets.retain(|t| t.from < today);
     habit.targets.push(TargetChange { from: today, value });
-    let msg = format!("{} target {value}{} from {today}", habit.id, unit_suffix(habit.unit.as_deref()));
-    if let Some(Entry::Value { target, .. }) =
-        data.entries.get_mut(&habit.id).and_then(|e| e.get_mut(&today))
+    let msg = format!(
+        "{} target {value}{} from {today}",
+        habit.id,
+        unit_suffix(habit.unit.as_deref())
+    );
+    if let Some(Entry::Value { target, .. }) = data
+        .entries
+        .get_mut(&habit.id)
+        .and_then(|e| e.get_mut(&today))
     {
         *target = value;
     }
@@ -253,10 +292,18 @@ pub fn archive(data: &mut Data, idx: usize, today: Date) -> Result<Report> {
     if let Some(p) = habit.open_pause() {
         bail!("{} is already archived since {}", habit.id, p.from);
     }
-    if habit.pauses.last().and_then(|p| p.to).is_some_and(|to| to > today) {
+    if habit
+        .pauses
+        .last()
+        .and_then(|p| p.to)
+        .is_some_and(|to| to > today)
+    {
         bail!("{} has a pause ending after {today}", habit.id);
     }
-    habit.pauses.push(Pause { from: today, to: None });
+    habit.pauses.push(Pause {
+        from: today,
+        to: None,
+    });
     Ok(Report::new(format!("archived {}", habit.id)))
 }
 
@@ -276,7 +323,11 @@ pub fn unarchive(data: &mut Data, idx: usize, today: Date) -> Result<Report> {
 pub fn delete(data: &mut Data, idx: usize) -> Report {
     let habit = data.habits.remove(idx);
     let n = data.entries.remove(&habit.id).map_or(0, |e| e.len());
-    Report::new(format!("deleted {} ({})", habit.id, plural(n, "entry", "entries")))
+    Report::new(format!(
+        "deleted {} ({})",
+        habit.id,
+        plural(n, "entry", "entries")
+    ))
 }
 
 #[cfg(test)]
@@ -285,7 +336,10 @@ mod tests {
     use jiff::civil::date;
 
     const TODAY: Date = date(2026, 10, 27);
-    const CFG: Config = Config { day_starts_at: 0, backfill_warn_days: 7 };
+    const CFG: Config = Config {
+        day_starts_at: 0,
+        backfill_warn_days: 7,
+    };
 
     fn new(id: &str, target: Option<u32>) -> NewHabit {
         NewHabit {
@@ -318,11 +372,25 @@ mod tests {
         let mut d = setup();
         assert!(add(&mut d, new("read", None), TODAY).is_err());
         assert!(add(&mut d, new("Bad", None), TODAY).is_err());
-        let future = NewHabit { since: Some(date(2026, 10, 28)), ..new("x", None) };
-        assert!(add(&mut d, future, TODAY).unwrap_err().to_string().contains("in the future"));
+        let future = NewHabit {
+            since: Some(date(2026, 10, 28)),
+            ..new("x", None)
+        };
+        assert!(
+            add(&mut d, future, TODAY)
+                .unwrap_err()
+                .to_string()
+                .contains("in the future")
+        );
         let h = &d.habits[1];
         assert_eq!((h.kind, h.start), (Kind::Count, date(2026, 10, 1)));
-        assert_eq!(h.targets, vec![TargetChange { from: date(2026, 10, 1), value: 8 }]);
+        assert_eq!(
+            h.targets,
+            vec![TargetChange {
+                from: date(2026, 10, 1),
+                value: 8
+            }]
+        );
         d.validate().unwrap();
     }
 
@@ -378,7 +446,10 @@ mod tests {
     #[test]
     fn undo_entry() {
         let mut d = setup();
-        assert_eq!(undo(&mut d, 0, TODAY, TODAY, &CFG).unwrap().message, "nothing to undo");
+        assert_eq!(
+            undo(&mut d, 0, TODAY, TODAY, &CFG).unwrap().message,
+            "nothing to undo"
+        );
         done(&mut d, 0, DoneMode::Add(None), TODAY, TODAY, &CFG).unwrap();
         undo(&mut d, 0, TODAY, TODAY, &CFG).unwrap();
         assert_eq!(get(&d, "read", TODAY), None);
@@ -401,16 +472,40 @@ mod tests {
     #[test]
     fn backfill_warning_threshold() {
         let mut d = setup();
-        let r = done(&mut d, 0, DoneMode::Add(None), date(2026, 10, 20), TODAY, &CFG).unwrap();
+        let r = done(
+            &mut d,
+            0,
+            DoneMode::Add(None),
+            date(2026, 10, 20),
+            TODAY,
+            &CFG,
+        )
+        .unwrap();
         assert!(r.warnings.is_empty());
-        let r = done(&mut d, 0, DoneMode::Add(None), date(2026, 10, 19), TODAY, &CFG).unwrap();
+        let r = done(
+            &mut d,
+            0,
+            DoneMode::Add(None),
+            date(2026, 10, 19),
+            TODAY,
+            &CFG,
+        )
+        .unwrap();
         assert_eq!(r.warnings.len(), 1);
     }
 
     #[test]
     fn future_rejected() {
         let mut d = setup();
-        let err = done(&mut d, 0, DoneMode::Add(None), date(2026, 10, 28), TODAY, &CFG).unwrap_err();
+        let err = done(
+            &mut d,
+            0,
+            DoneMode::Add(None),
+            date(2026, 10, 28),
+            TODAY,
+            &CFG,
+        )
+        .unwrap_err();
         assert_eq!(err.to_string(), "2026-10-28 is in the future");
     }
 
@@ -419,14 +514,42 @@ mod tests {
         let mut d = setup();
         archive(&mut d, 0, date(2026, 10, 10)).unwrap();
         let err = done(&mut d, 0, DoneMode::Add(None), TODAY, TODAY, &CFG).unwrap_err();
-        assert_eq!(err.to_string(), "read is archived since 2026-10-10; run 'tp unarchive read'");
+        assert_eq!(
+            err.to_string(),
+            "read is archived since 2026-10-10; run 'tp unarchive read'"
+        );
         assert!(skip(&mut d, 0, date(2026, 10, 5), TODAY, &CFG).is_err());
         assert!(archive(&mut d, 0, TODAY).is_err());
         unarchive(&mut d, 0, date(2026, 10, 20)).unwrap();
-        assert_eq!(d.habits[0].pauses, vec![Pause { from: date(2026, 10, 10), to: Some(date(2026, 10, 20)) }]);
-        let err = done(&mut d, 0, DoneMode::Add(None), date(2026, 10, 12), TODAY, &CFG).unwrap_err();
-        assert_eq!(err.to_string(), "2026-10-12 is inside a pause of read (2026-10-10..2026-10-20)");
-        done(&mut d, 0, DoneMode::Add(None), date(2026, 10, 20), TODAY, &CFG).unwrap();
+        assert_eq!(
+            d.habits[0].pauses,
+            vec![Pause {
+                from: date(2026, 10, 10),
+                to: Some(date(2026, 10, 20))
+            }]
+        );
+        let err = done(
+            &mut d,
+            0,
+            DoneMode::Add(None),
+            date(2026, 10, 12),
+            TODAY,
+            &CFG,
+        )
+        .unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "2026-10-12 is inside a pause of read (2026-10-10..2026-10-20)"
+        );
+        done(
+            &mut d,
+            0,
+            DoneMode::Add(None),
+            date(2026, 10, 20),
+            TODAY,
+            &CFG,
+        )
+        .unwrap();
         assert!(unarchive(&mut d, 0, TODAY).is_err());
         archive(&mut d, 0, TODAY).unwrap();
         unarchive(&mut d, 0, TODAY).unwrap();
@@ -443,7 +566,13 @@ mod tests {
         target(&mut d, 1, 10, TODAY).unwrap();
         target(&mut d, 1, 12, TODAY).unwrap();
         assert_eq!(get(&d, "water", y), val(6));
-        assert_eq!(get(&d, "water", TODAY), Some(Entry::Value { value: 6, target: 12 }));
+        assert_eq!(
+            get(&d, "water", TODAY),
+            Some(Entry::Value {
+                value: 6,
+                target: 12
+            })
+        );
         assert_eq!(d.habits[1].targets.len(), 2);
         assert_eq!(d.habits[1].target_on(TODAY), Some(12));
         assert!(target(&mut d, 0, 3, TODAY).is_err());
@@ -453,9 +582,23 @@ mod tests {
     #[test]
     fn target_on_start_day_replaces() {
         let mut d = Data::default();
-        add(&mut d, NewHabit { since: None, ..new("water", Some(8)) }, TODAY).unwrap();
+        add(
+            &mut d,
+            NewHabit {
+                since: None,
+                ..new("water", Some(8))
+            },
+            TODAY,
+        )
+        .unwrap();
         target(&mut d, 0, 5, TODAY).unwrap();
-        assert_eq!(d.habits[0].targets, vec![TargetChange { from: TODAY, value: 5 }]);
+        assert_eq!(
+            d.habits[0].targets,
+            vec![TargetChange {
+                from: TODAY,
+                value: 5
+            }]
+        );
     }
 
     #[test]
@@ -464,7 +607,10 @@ mod tests {
         done(&mut d, 0, DoneMode::Add(None), TODAY, TODAY, &CFG).unwrap();
         assert!(rename(&mut d, 0, "water", None).is_err());
         rename(&mut d, 0, "books", None).unwrap();
-        assert_eq!((d.habits[0].id.as_str(), d.habits[0].name.as_str()), ("books", "books"));
+        assert_eq!(
+            (d.habits[0].id.as_str(), d.habits[0].name.as_str()),
+            ("books", "books")
+        );
         assert_eq!(get(&d, "books", TODAY), Some(Entry::Done));
         rename(&mut d, 0, "books", Some("Read 20 pages".into())).unwrap();
         assert_eq!(d.habits[0].name, "Read 20 pages");

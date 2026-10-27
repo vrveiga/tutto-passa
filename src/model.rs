@@ -143,7 +143,11 @@ pub struct Data {
 
 impl Default for Data {
     fn default() -> Self {
-        Data { version: DATA_VERSION, habits: Vec::new(), entries: BTreeMap::new() }
+        Data {
+            version: DATA_VERSION,
+            habits: Vec::new(),
+            entries: BTreeMap::new(),
+        }
     }
 }
 
@@ -243,7 +247,10 @@ pub mod tests {
     pub fn count_habit(id: &str, start: Date, target: u32) -> Habit {
         Habit {
             kind: Kind::Count,
-            targets: vec![TargetChange { from: start, value: target }],
+            targets: vec![TargetChange {
+                from: start,
+                value: target,
+            }],
             ..bool_habit(id, start)
         }
     }
@@ -269,7 +276,10 @@ pub mod tests {
     #[test]
     fn target_history() {
         let mut h = count_habit("water", date(2026, 10, 10), 6);
-        h.targets.push(TargetChange { from: date(2026, 10, 20), value: 8 });
+        h.targets.push(TargetChange {
+            from: date(2026, 10, 20),
+            value: 8,
+        });
         assert_eq!(h.target_on(date(2026, 10, 1)), Some(6));
         assert_eq!(h.target_on(date(2026, 10, 19)), Some(6));
         assert_eq!(h.target_on(date(2026, 10, 20)), Some(8));
@@ -278,22 +288,35 @@ pub mod tests {
 
     #[test]
     fn pause_bounds() {
-        let p = Pause { from: date(2026, 9, 1), to: Some(date(2026, 9, 10)) };
+        let p = Pause {
+            from: date(2026, 9, 1),
+            to: Some(date(2026, 9, 10)),
+        };
         assert!(!p.contains(date(2026, 8, 31)));
         assert!(p.contains(date(2026, 9, 1)));
         assert!(p.contains(date(2026, 9, 9)));
         assert!(!p.contains(date(2026, 9, 10)));
-        let open = Pause { from: date(2026, 9, 1), to: None };
+        let open = Pause {
+            from: date(2026, 9, 1),
+            to: None,
+        };
         assert!(open.contains(date(2030, 1, 1)));
     }
 
     #[test]
     fn entry_serde() {
-        let json = r#"{"2026-10-26":"done","2026-10-27":"skip","2026-10-28":{"value":5,"target":8}}"#;
+        let json =
+            r#"{"2026-10-26":"done","2026-10-27":"skip","2026-10-28":{"value":5,"target":8}}"#;
         let e: Entries = serde_json::from_str(json).unwrap();
         assert_eq!(e[&date(2026, 10, 26)], Entry::Done);
         assert_eq!(e[&date(2026, 10, 27)], Entry::Skip);
-        assert_eq!(e[&date(2026, 10, 28)], Entry::Value { value: 5, target: 8 });
+        assert_eq!(
+            e[&date(2026, 10, 28)],
+            Entry::Value {
+                value: 5,
+                target: 8
+            }
+        );
         assert_eq!(serde_json::to_string(&e).unwrap(), json);
         assert!(serde_json::from_str::<Entry>(r#""maybe""#).is_err());
     }

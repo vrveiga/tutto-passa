@@ -62,8 +62,14 @@ mod tests {
                 let d = TODAY.checked_sub((n - 1 - i as i64).days()).unwrap();
                 let e = match c {
                     'x' if target == 0 => Entry::Done,
-                    'x' => Entry::Value { value: target, target },
-                    'p' => Entry::Value { value: 1, target: target.max(2) },
+                    'x' => Entry::Value {
+                        value: target,
+                        target,
+                    },
+                    'p' => Entry::Value {
+                        value: 1,
+                        target: target.max(2),
+                    },
                     's' => Entry::Skip,
                     _ => return None,
                 };
@@ -112,7 +118,10 @@ mod tests {
     #[test]
     fn pause_resets() {
         let mut h = bool_habit("gym", date(2026, 10, 1));
-        h.pauses.push(Pause { from: date(2026, 10, 24), to: Some(date(2026, 10, 26)) });
+        h.pauses.push(Pause {
+            from: date(2026, 10, 24),
+            to: Some(date(2026, 10, 26)),
+        });
         let e = entries("xxxxxxx", 0);
         assert_eq!(current_streak(&h, &e, TODAY), 2);
         assert_eq!(longest_streak(&h, &e, TODAY), 3);
@@ -121,11 +130,26 @@ mod tests {
     #[test]
     fn raised_target_keeps_history() {
         let mut h = count_habit("water", date(2026, 10, 1), 6);
-        h.targets.push(TargetChange { from: TODAY, value: 8 });
+        h.targets.push(TargetChange {
+            from: TODAY,
+            value: 8,
+        });
         let mut e = entries("xxx", 6); // stamped with target 6
-        e.insert(TODAY, Entry::Value { value: 6, target: 8 });
+        e.insert(
+            TODAY,
+            Entry::Value {
+                value: 6,
+                target: 8,
+            },
+        );
         assert_eq!(current_streak(&h, &e, TODAY), 2); // today pending at 6/8
-        e.insert(TODAY, Entry::Value { value: 8, target: 8 });
+        e.insert(
+            TODAY,
+            Entry::Value {
+                value: 8,
+                target: 8,
+            },
+        );
         assert_eq!(current_streak(&h, &e, TODAY), 3);
     }
 }

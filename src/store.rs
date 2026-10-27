@@ -54,7 +54,10 @@ pub fn save(path: &Path, data: &Data) -> Result<()> {
         _ => Path::new("."),
     };
     fs::create_dir_all(dir).with_context(|| format!("creating {}", dir.display()))?;
-    let mut tmp_name = path.file_name().context("data path has no file name")?.to_owned();
+    let mut tmp_name = path
+        .file_name()
+        .context("data path has no file name")?
+        .to_owned();
     tmp_name.push(".tmp");
     let tmp = dir.join(tmp_name);
     let write = || -> std::io::Result<()> {
@@ -130,7 +133,10 @@ mod tests {
         assert_eq!(data.habits.len(), 2);
         assert_eq!(
             data.entries["water"][&jiff::civil::date(2026, 10, 26)],
-            Entry::Value { value: 5, target: 8 }
+            Entry::Value {
+                value: 5,
+                target: 8
+            }
         );
         assert_eq!(to_json(&data), SAMPLE);
     }
@@ -143,7 +149,10 @@ mod tests {
 
     #[test]
     fn corrupt_reports_position() {
-        let err = format!("{:#}", parse("{\"version\": 1,\n  \"habits\": [}").unwrap_err());
+        let err = format!(
+            "{:#}",
+            parse("{\"version\": 1,\n  \"habits\": [}").unwrap_err()
+        );
         assert!(err.contains("line 2"), "{err}");
     }
 
@@ -153,8 +162,16 @@ mod tests {
             (r#""id": "read""#, r#""id": "Read""#, "invalid habit id"),
             (r#""id": "water""#, r#""id": "read""#, "duplicate"),
             (r#""water": {"#, r#""ghost": {"#, "unknown habit"),
-            (r#""to": "2026-10-15""#, r#""to": "2026-10-01""#, "ends before"),
-            (r#""2026-10-26": "done""#, r#""2026-10-26": {"value": 1, "target": 1}"#, "invalid entry"),
+            (
+                r#""to": "2026-10-15""#,
+                r#""to": "2026-10-01""#,
+                "ends before",
+            ),
+            (
+                r#""2026-10-26": "done""#,
+                r#""2026-10-26": {"value": 1, "target": 1}"#,
+                "invalid entry",
+            ),
         ];
         for (from, to, msg) in cases {
             let text = SAMPLE.replacen(from, to, 1);

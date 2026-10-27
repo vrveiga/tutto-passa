@@ -47,7 +47,11 @@ pub fn day_state(habit: &Habit, entry: Option<&Entry>, date: Date, today: Date) 
         Some(&Entry::Value { value, .. }) if value > 0 && date < today => return DayState::Partial,
         _ => {}
     }
-    if date == today { DayState::Pending } else { DayState::Missed }
+    if date == today {
+        DayState::Pending
+    } else {
+        DayState::Missed
+    }
 }
 
 /// Heatmap intensity 0..=4 (spec §3.2).
@@ -77,14 +81,17 @@ mod tests {
     use super::*;
     use crate::model::Pause;
     use crate::model::tests::{bool_habit, count_habit};
-    use jiff::civil::date;
     use DayState::*;
+    use jiff::civil::date;
 
     #[test]
     fn states() {
         let today = date(2026, 10, 27);
         let mut h = count_habit("water", date(2026, 10, 1), 8);
-        h.pauses.push(Pause { from: date(2026, 10, 10), to: Some(date(2026, 10, 15)) });
+        h.pauses.push(Pause {
+            from: date(2026, 10, 10),
+            to: Some(date(2026, 10, 15)),
+        });
         let v = |value| Some(Entry::Value { value, target: 8 });
         let cases = [
             (date(2026, 10, 28), v(8), Future),
@@ -109,7 +116,10 @@ mod tests {
         let b = bool_habit("read", date(2026, 10, 1));
         assert_eq!(day_state(&b, Some(&Entry::Done), today, today), Done);
         assert_eq!(day_state(&b, None, date(2026, 10, 26), today), Missed);
-        assert_eq!(day_state(&b, Some(&Entry::Done), date(2026, 10, 1), today), Done);
+        assert_eq!(
+            day_state(&b, Some(&Entry::Done), date(2026, 10, 1), today),
+            Done
+        );
     }
 
     #[test]
@@ -127,7 +137,13 @@ mod tests {
             (v(10), 3),
             (v(14), 3),
             (v(15), 4),
-            (Some(Entry::Value { value: u32::MAX, target: u32::MAX }), 3),
+            (
+                Some(Entry::Value {
+                    value: u32::MAX,
+                    target: u32::MAX,
+                }),
+                3,
+            ),
         ] {
             assert_eq!(level(e.as_ref()), want, "{e:?}");
         }

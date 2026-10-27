@@ -148,11 +148,15 @@ pub fn parse_date_spec(s: &str) -> Result<DateSpec, String> {
     let shape = b.len() == 10
         && b[4] == b'-'
         && b[7] == b'-'
-        && b.iter().enumerate().all(|(i, c)| i == 4 || i == 7 || c.is_ascii_digit());
+        && b.iter()
+            .enumerate()
+            .all(|(i, c)| i == 4 || i == 7 || c.is_ascii_digit());
     if !shape {
         return Err(err());
     }
-    s.parse().map(DateSpec::On).map_err(|e| format!("invalid date '{s}': {e}"))
+    s.parse()
+        .map(DateSpec::On)
+        .map_err(|e| format!("invalid date '{s}': {e}"))
 }
 
 #[cfg(test)]
@@ -187,7 +191,14 @@ mod tests {
         let parse = |args: &[&str]| Cli::try_parse_from([&["tp"], args].concat());
         let cli = parse(&["done", "water", "3", "-d", "-2"]).unwrap();
         match cli.command {
-            Some(Command::Done { n: Some(3), date: DateArg { date: Some(DateSpec::DaysAgo(2)) }, .. }) => {}
+            Some(Command::Done {
+                n: Some(3),
+                date:
+                    DateArg {
+                        date: Some(DateSpec::DaysAgo(2)),
+                    },
+                ..
+            }) => {}
             other => panic!("{other:?}"),
         }
         assert!(parse(&["done", "water", "--date=-1"]).is_ok());

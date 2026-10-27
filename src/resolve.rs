@@ -7,8 +7,9 @@ pub fn resolve(data: &Data, arg: &str) -> Result<usize> {
     if let Some(i) = data.find(arg) {
         return Ok(i);
     }
-    let matches: Vec<usize> =
-        (0..data.habits.len()).filter(|&i| data.habits[i].id.starts_with(arg)).collect();
+    let matches: Vec<usize> = (0..data.habits.len())
+        .filter(|&i| data.habits[i].id.starts_with(arg))
+        .collect();
     match matches[..] {
         [i] => Ok(i),
         [] => {
@@ -24,7 +25,10 @@ pub fn resolve(data: &Data, arg: &str) -> Result<usize> {
             }
         }
         _ => {
-            let ids: Vec<&str> = matches.iter().map(|&i| data.habits[i].id.as_str()).collect();
+            let ids: Vec<&str> = matches
+                .iter()
+                .map(|&i| data.habits[i].id.as_str())
+                .collect();
             bail!("'{arg}' matches {}", ids.join(", "))
         }
     }
@@ -53,7 +57,10 @@ mod tests {
 
     fn data(ids: &[&str]) -> Data {
         Data {
-            habits: ids.iter().map(|id| bool_habit(id, date(2026, 1, 1))).collect(),
+            habits: ids
+                .iter()
+                .map(|id| bool_habit(id, date(2026, 1, 1)))
+                .collect(),
             ..Data::default()
         }
     }

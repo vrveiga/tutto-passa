@@ -28,7 +28,11 @@ pub fn strip_len(width: u16, fixed: usize) -> usize {
 }
 
 pub fn render(data: &Data, today: Date, all: bool, width: u16, mode: ColorMode) -> String {
-    let habits: Vec<&Habit> = data.habits.iter().filter(|h| all || !h.is_archived()).collect();
+    let habits: Vec<&Habit> = data
+        .habits
+        .iter()
+        .filter(|h| all || !h.is_archived())
+        .collect();
     if habits.is_empty() {
         return "no habits yet — try: tp add read\n".into();
     }
@@ -44,11 +48,25 @@ pub fn render(data: &Data, today: Date, all: bool, width: u16, mode: ColorMode) 
             let entries = data.entries_of(&h.id);
             let (status, state) = status(h, entries.get(&today), today);
             let streak = format!("streak {}", current_streak(h, entries, today));
-            Row { habit: h, status, state, streak }
+            Row {
+                habit: h,
+                status,
+                state,
+                streak,
+            }
         })
         .collect();
-    let id_w = rows.iter().map(|r| r.habit.id.chars().count()).max().unwrap_or(0);
-    let st_w = rows.iter().map(|r| r.status.chars().count()).max().unwrap_or(0).max(4);
+    let id_w = rows
+        .iter()
+        .map(|r| r.habit.id.chars().count())
+        .max()
+        .unwrap_or(0);
+    let st_w = rows
+        .iter()
+        .map(|r| r.status.chars().count())
+        .max()
+        .unwrap_or(0)
+        .max(4);
     let streak_w = rows.iter().map(|r| r.streak.len()).max().unwrap_or(0);
     let n = strip_len(width, 2 + id_w + 2 + st_w + 2 + 2 + streak_w + 1);
 
@@ -60,9 +78,15 @@ pub fn render(data: &Data, today: Date, all: bool, width: u16, mode: ColorMode) 
         let id = format!("{:<id_w$}", h.id);
         let st = format!("{:<st_w$}", r.status);
         let (id, st) = if archived {
-            (paint(mode, &id, Style::dim()), paint(mode, &st, Style::dim()))
+            (
+                paint(mode, &id, Style::dim()),
+                paint(mode, &st, Style::dim()),
+            )
         } else if r.state == DayState::Done {
-            let s = Style { bold: true, ..Style::fg(ramp(h.color)[3]) };
+            let s = Style {
+                bold: true,
+                ..Style::fg(ramp(h.color)[3])
+            };
             (id, paint(mode, &st, s))
         } else {
             (id, st)
@@ -105,18 +129,39 @@ mod tests {
         d.habits.push(bool_habit("read", date(2026, 10, 1)));
         d.habits.push(count_habit("water", date(2026, 10, 1), 8));
         let mut gym = bool_habit("gym", date(2026, 10, 1));
-        gym.pauses.push(Pause { from: date(2026, 10, 20), to: None });
+        gym.pauses.push(Pause {
+            from: date(2026, 10, 20),
+            to: None,
+        });
         d.habits.push(gym);
-        d.entries.entry("read".into()).or_default().insert(TODAY, Entry::Done);
-        d.entries.entry("read".into()).or_default().insert(date(2026, 10, 26), Entry::Skip);
-        d.entries.entry("water".into()).or_default().insert(TODAY, Entry::Value { value: 4, target: 8 });
+        d.entries
+            .entry("read".into())
+            .or_default()
+            .insert(TODAY, Entry::Done);
+        d.entries
+            .entry("read".into())
+            .or_default()
+            .insert(date(2026, 10, 26), Entry::Skip);
+        d.entries.entry("water".into()).or_default().insert(
+            TODAY,
+            Entry::Value {
+                value: 4,
+                target: 8,
+            },
+        );
         let got = render(&d, TODAY, false, 0, ColorMode::None);
         assert_eq!(
             got,
             "  read   ✓     □□□□□·█  streak 1\n  water  4/8   □□□□□□▒  streak 0\n"
         );
         let all = render(&d, TODAY, true, 0, ColorMode::None);
-        assert!(all.lines().nth(2).unwrap().ends_with("streak 0  archived"), "{all}");
-        assert_eq!(render(&Data::default(), TODAY, false, 80, ColorMode::None), "no habits yet — try: tp add read\n");
+        assert!(
+            all.lines().nth(2).unwrap().ends_with("streak 0  archived"),
+            "{all}"
+        );
+        assert_eq!(
+            render(&Data::default(), TODAY, false, 80, ColorMode::None),
+            "no habits yet — try: tp add read\n"
+        );
     }
 }
